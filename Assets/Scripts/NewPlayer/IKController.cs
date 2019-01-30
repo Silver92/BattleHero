@@ -3,7 +3,7 @@ using System.Collections;
 
 public class IKController : MonoBehaviour {
 
-	Animator animator;						// 玩家动画控制器
+	Animator animator;
 	public bool isActive = true;			// 是否启用IK
 	public Transform lookObj = null;		// 玩家头部IK标记物
 	public Transform leftHandObj = null;	// 玩家左手IK标记物
@@ -11,7 +11,6 @@ public class IKController : MonoBehaviour {
 	public Transform bodyObj = null;		// 玩家身体IK标记物
 
 	void Start(){
-		//
 		animator = GetComponent<Animator> ();
 	}
 

@@ -69,7 +69,7 @@ public class PlayerMove : MonoBehaviour {
 		if (!playerHealth.isAlive) 
 			return;
 		
-		if (GameManager.gm.gameState != GameManager.GameState.Playing)
+		if (GameManager.gm.gameState != Enums.GameState.Playing)
 			return;
 		
 		float h = CrossPlatformInputManager.GetAxisRaw ("Horizontal");

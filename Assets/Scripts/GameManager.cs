@@ -5,101 +5,167 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour {
 
-	static public GameManager gm;				//静态游戏管理器，场景中唯一的游戏管理器实例
+    // Static game manager (only one in game)
+    static public GameManager gm;
 
-	public int TargetScore = 5;			//目标分数
-	public enum GameState 				//游戏状态枚举
-	{Playing,GameOver,Winning};
-	public GameState gameState;			//游戏状态
-	public GameObject player;			//游戏主角
+    #region Public Field
+    [Tooltip("Target Score")]
+    public int TargetScore = 5;
+    [Tooltip("Game State")]
+    public Enums.GameState gameState;
+    [Tooltip("Main player")]
+    public GameObject player;
 
-	public GameObject playingCanvas;	//游戏进行时Canvas
-	public Text scoreText;				//Text组件，用于显示当前游戏得分的文本信息
-	public Text timeText;				//Text组件，用于显示当前游戏时间的文本信息
-	public Slider healthSlider;			//Slider组件，用于显示玩家当前生命值血条
-	public Image hurtImage;				//Image组件，用于玩家受伤时的屏幕变红效果
+    [Header("Game Play UI")]
+    public GameObject playingCanvas;
+    public GameObject gameResultCanvas;
+    public GameObject mobileControlRigCanvas;
+    public Text scoreText;
+    public Text timeText;
+    public Slider healthSlider;
+    [Tooltip("Image to show the hurt effect")]
+    public Image hurtImage;
+    
+    [Header("Game Result UI")]
+    [Tooltip("Show the first place player's current info")]
+    public GameObject firstUserText;
+    [Tooltip("Show the second place player's current info")]
+    public GameObject secondUserText;
+    [Tooltip("Show the third place player's current info")]
+    public GameObject thirdUserText;
+    [Tooltip("Show the player's current info")]
+    public GameObject userText;
+    [Tooltip("To show if the player go into the first three place")]
+    public Text gameMessage;
+    
+    [Header("Audio")]
+    public AudioClip gameWinAudio;
+    public AudioClip gameOverAudio;
+    
+    [Tooltip("Toggle to lock the cursor during the game")]
+    public bool lockCursor = true;
+    #endregion
+    
 
-	public AudioClip gameWinAudio;				//游戏胜利音效
-	public AudioClip gameOverAudio;				//游戏失败音效
-	public GameObject gameResultCanvas;			//游戏结果Canvas
-	public GameObject mobileControlRigCanvas;	//移动端控制UI
+    #region Private Field
+    private bool m_cursorIsLocked;
+    
+    private int currentScore;
+    /// <summary>
+    /// The time to start the scenea.
+    /// </summary>
+    private float startTime;
+    private float currentTime;
+    private PlayerHealth playerHealth;
 
-	public GameObject firstUserText;	//排名第一的玩家信息
-	public GameObject secondUserText;	//排名第二的玩家信息
-	public GameObject thirdUserText;	//排名第三的玩家信息
-	public GameObject userText;			//本次玩家信息
-	public Text gameMessage;			//游戏结果信息，提示玩家是否进入前三名
+    private bool cursor;
+    private AudioListener audioListener;    //摄像机的AudioListener组件
+    private Color flashColor = new Color (1.0f, 0.0f, 0.0f, 0.3f);  //玩家受伤时，hurtImage的颜色
+    private float flashSpeed = 2.0f;                                //hurtImage颜色的渐变速度
 
-	public bool lockCursor = true;		//是否在游戏进行时锁定鼠标
-	private bool m_cursorIsLocked;		//当前鼠标是否已经被锁定
+    private UserData firstUserData;     //排名第一的玩家的相关数据
+    private UserData secondUserData;    //排名第二的玩家的相关数据
+    private UserData thirdUserData;     //排名第三的玩家的相关数据
+    private UserData currentUserData;   //当前玩家的相关数据
+    private UserData[] userDataArray = new UserData[4];
 
-	private int currentScore;			//当前得分
-	private float startTime;			//场景加载的时刻
-	private float currentTime;			//从场景加载到现在所花的时间
-	private PlayerHealth playerHealth;	//玩家生命值组件
+    private bool isGameOver=false;      //标识，保证游戏结束时的相关行为只执行一次
+    #endregion
 
-	private bool cursor;					//鼠标光标是否显示
-	private AudioListener audioListener;	//摄像机的AudioListener组件
-	private Color flashColor = new Color (1.0f, 0.0f, 0.0f, 0.3f);	//玩家受伤时，hurtImage的颜色
-	private float flashSpeed = 2.0f;								//hurtImage颜色的渐变速度
+    #region Initialization
+    /// <summary>
+    /// Initialization.
+    /// </summary>
+    void Start ()
+    {
 
-	private UserData firstUserData;		//排名第一的玩家的相关数据
-	private UserData secondUserData;	//排名第二的玩家的相关数据
-	private UserData thirdUserData;		//排名第三的玩家的相关数据
-	private UserData currentUserData;	//当前玩家的相关数据
-	private UserData[] userDataArray = new UserData[4];
+        // Intiate the static instance.
+        if (gm == null)
+            gm = GetComponent<GameManager>();
 
-	private bool isGameOver=false;		//标识，保证游戏结束时的相关行为只执行一次
+        // Set the game state to playing.
+        gm.gameState = Enums.GameState.Playing;
+        // Set the start score as 0.
+        currentScore = 0;
+        // Set the start time.
+        startTime = Time.time;
 
-	//初始化函数
-	void Start () {
-		if (gm == null)			//静态游戏管理器初始化
-			gm = GetComponent<GameManager> ();
-		if (player == null)		//获取场景中的游戏主角
-			player = GameObject.FindGameObjectWithTag ("Player");
-		//获取场景中的AudioListener组件
-		if(GameObject.FindGameObjectWithTag ("MainCamera")!=null)
-			audioListener = GameObject.FindGameObjectWithTag ("MainCamera").GetComponent<AudioListener> ();
+        PlayerInit();
+        UIInit();
+        AudioInit();
 
-		gm.gameState = GameState.Playing;	//游戏状态设置为游戏进行中
-		currentScore = 0;					//当前得分初始化为0
-		startTime = Time.time;				//记录场景加载的时刻
+        m_cursorIsLocked = lockCursor;
+    }
+    
+    /// <summary>
+    /// Initialize the UI.
+    /// </summary>
+    private void UIInit()
+    {
+    
+        // Get the main player.
+        if (player == null)
+            player = GameObject.FindGameObjectWithTag("Player");
+            
+        playingCanvas.SetActive(true);
+        gameResultCanvas.SetActive(false);
 
-		if(player!=null)
-			playerHealth = player.GetComponent<PlayerHealth> ();	//获取玩家生命值组件，并初始化玩家生命值与HealthSlider参数
-		if (playerHealth) {
-			healthSlider.maxValue = playerHealth.startHealth;
-			healthSlider.minValue = 0;
-			healthSlider.value = playerHealth.currentHealth;
-		}
+        // Save the first three places information.
+        if (PlayerPrefs.GetString("FirstUser") != "")
+        {
+            firstUserData = new UserData(PlayerPrefs.GetString("FirstUser"));
+        }
+        else
+            firstUserData = new UserData();
+        if (PlayerPrefs.GetString("SecondUser") != "")
+        {
+            secondUserData = new UserData(PlayerPrefs.GetString("SecondUser"));
+        }
+        else
+            secondUserData = new UserData();
+        if (PlayerPrefs.GetString("ThirdUser") != "")
+        {
+            thirdUserData = new UserData(PlayerPrefs.GetString("ThirdUser"));
+        }
+        else
+            thirdUserData = new UserData();
+    }
+    
+    /// <summary>
+    /// Initialize the player.
+    /// </summary>
+    private void PlayerInit()
+    {
+        // Get the player health component and intiate the parameters.
+        if (player != null)
+            playerHealth = player.GetComponent<PlayerHealth>();
+        if (playerHealth)
+        {
+            healthSlider.maxValue = playerHealth.startHealth;
+            healthSlider.minValue = 0;
+            healthSlider.value = playerHealth.currentHealth;
+        }
+        
+        // Set the user name as no one if the player has not name.
+        if (PlayerPrefs.GetString("Username") == "")
+            PlayerPrefs.SetString("Username", "No One");
+    }
+    
+    /// <summary>
+    /// Initialize the audio.
+    /// </summary>
+    private void AudioInit()
+    {
+        // Get the audio listener.
+        if (GameObject.FindGameObjectWithTag("MainCamera") != null)
+            audioListener = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<AudioListener>();
+        // Set up the audio playing mode as the setting.
+        if (audioListener != null)
+            audioListener.enabled = (PlayerPrefs.GetInt("SoundOn") == 1);
+    }
+    #endregion
 
-		playingCanvas.SetActive (true);		//启用游戏进行中Canvas
-		gameResultCanvas.SetActive(false);	//禁用游戏结果Canvas
-
-		if(PlayerPrefs.GetString("Username")=="")	//若玩家未输入姓名，则将其姓名改为无名英雄
-			//PlayerPrefs.SetString("Username","无名英雄");
-            PlayerPrefs.SetString("Username","NoName");
-		//从本地保存的数据中获取前三名信息
-		if (PlayerPrefs.GetString ("FirstUser") != "") {
-			firstUserData = new UserData (PlayerPrefs.GetString ("FirstUser"));
-		} else
-			firstUserData = new UserData ();
-		if (PlayerPrefs.GetString ("SecondUser") != "") {
-			secondUserData = new UserData (PlayerPrefs.GetString ("SecondUser"));
-		} else
-			secondUserData = new UserData ();
-		if (PlayerPrefs.GetString ("ThirdUser") != "") {
-			thirdUserData = new UserData (PlayerPrefs.GetString ("ThirdUser"));
-		} else
-			thirdUserData = new UserData ();
-		//根据GameStart场景中的声音设置，控制本场景中AudioListener的启用与禁用
-		if(audioListener!=null)
-			audioListener.enabled = (PlayerPrefs.GetInt ("SoundOff") != 1);
-
-		m_cursorIsLocked = lockCursor;
-	}
-
-	void Update () {
+    void Update () {
 		//更新hurtImage的颜色（线性插值）
 		hurtImage.color = Color.Lerp (
 			hurtImage.color, 
@@ -110,12 +176,12 @@ public class GameManager : MonoBehaviour {
 		//根据游戏状态执行不同的操作
 		switch (gameState) {	
 		//游戏进行时
-		case GameState.Playing:		
+		case Enums.GameState.Playing:		
 			if (playerHealth!=null&&playerHealth.isAlive == false && playerHealth.restLife <=0)			//若玩家死亡，游戏状态切换到游戏失败
-				gm.gameState = GameState.GameOver;
+				gm.gameState = Enums.GameState.GameOver;
 			else if (currentScore >= TargetScore) {		//若当前得分大于等于目标分数，游戏状态切换到游戏胜利
 				currentScore = TargetScore;
-				gm.gameState = GameState.Winning;
+				gm.gameState = Enums.GameState.Winning;
 			}
 			//否则，当前游戏状态还是游戏进行时状态
 			else {							
@@ -128,10 +194,10 @@ public class GameManager : MonoBehaviour {
 					mobileControlRigCanvas.SetActive (true);
 			}
 			if(lockCursor)
-				InternalLockUpdate ();	//隐藏鼠标
+				InternalLockUpdate();
 			break;
 		//游戏胜利
-		case GameState.Winning:
+		case Enums.GameState.Winning:
 			if (!isGameOver) {
 				AudioSource.PlayClipAtPoint (gameWinAudio, player.transform.position);	//播放游戏胜利音效
 				Cursor.visible = true;					//将鼠标光标显示
@@ -142,9 +208,9 @@ public class GameManager : MonoBehaviour {
 				isGameOver = true;
 				EditGameOverCanvas();	//编辑游戏结束Canvas中的排行榜
 			}
-			ReleaseCursorLock ();		//显示鼠标
+                ReleaseCursorLock();
 			break;
-		case GameState.GameOver:
+		case Enums.GameState.GameOver:
 			if (!isGameOver) {
 				AudioSource.PlayClipAtPoint (gameOverAudio, player.transform.position);	//播放游戏失败音效
 				Cursor.visible = true;					//将鼠标光标显示
@@ -153,20 +219,23 @@ public class GameManager : MonoBehaviour {
 				if (mobileControlRigCanvas != null)		//禁用移动端控制Canvas
 					mobileControlRigCanvas.SetActive (false);
 				isGameOver = true;
-				EditGameOverCanvas ();	//编辑游戏结束Canvas中的排行榜
+				EditGameOverCanvas();	
 			}
-			ReleaseCursorLock ();		//显示鼠标
+			ReleaseCursorLock();
 			break;
 		}
 	}
 
 	//编辑游戏结束Canvas中的排行版
-	void EditGameOverCanvas(){
-		//根据当前玩家的姓名、得分、所用时间生成新的用户数据
-		currentUserData = new UserData (PlayerPrefs.GetString("Username") + " 0 " + currentScore.ToString() + " " + currentTime.ToString("0.00"));
-		currentUserData.isUser = true;			//该标识表示该数据是否为当前玩家数据
-		//将当前玩家以及第一至第三名玩家的信息保存在userDataArray数组里
-		userDataArray [0] = currentUserData;	
+	void EditGameOverCanvas()
+    {
+        //根据当前玩家的姓名、得分、所用时间生成新的用户数据
+        currentUserData = new UserData(PlayerPrefs.GetString("Username") + " 0 " + currentScore.ToString() + " " + currentTime.ToString("0.00"))
+        {
+            isUser = true
+        };
+        //将当前玩家以及第一至第三名玩家的信息保存在userDataArray数组里
+        userDataArray[0] = currentUserData;	
 		int arrayLength = 1;
 		if (firstUserData.order != "0")
 			userDataArray [arrayLength++] = firstUserData;
@@ -187,15 +256,12 @@ public class GameManager : MonoBehaviour {
 		//若玩家进入前三名，则显示相应的游戏信息
 		switch (currentUserData.order) {
 		case "1":
-			//gameMessage.text = "恭喜你荣登慕课英雄榜榜首！";
             gameMessage.text = "First place, congratulations!";
 			break;
 		case "2":
-			//gameMessage.text = "恭喜你荣登慕课英雄榜榜眼！";
             gameMessage.text = "Second place, congratulations!";
 			break;
 		case "3":
-			//gameMessage.text = "恭喜你荣登慕课英雄榜探花！";
             gameMessage.text = "Third place, congratulations!";
 			break;
 		default:
@@ -263,32 +329,50 @@ public class GameManager : MonoBehaviour {
 		}
 	}
 
-	//玩家得分
+	/// <summary>
+    /// Adds the score.
+    /// </summary>
+    /// <param name="value">Value.</param>
 	public void AddScore(int value){
 		currentScore += value;
 	}
-	//玩家扣血
+	
+    /// <summary>
+    /// Players the take damage.
+    /// </summary>
+    /// <param name="value">Value.</param>
 	public void PlayerTakeDamage(int value){
 		if (playerHealth != null)
 			playerHealth.TakeDamage(value);
 		hurtImage.color = flashColor;
 	}
-	//玩家加血
+	
+    /// <summary>
+    /// Players the add health.
+    /// </summary>
+    /// <param name="value">Value.</param>
 	public void PlayerAddHealth(int value){
 		if (playerHealth != null)
 			playerHealth.AddHealth(value);
 	}
 
-	//重新加载游戏场景
+	/// <summary>
+    /// Replay the game.
+    /// </summary>
 	public void PlayAgain(){
 		SceneManager.LoadScene("GamePlay");
 	}
-	//加载游戏开始场景
+    
+	/// <summary>
+    /// Backs to main.
+    /// </summary>
 	public void BackToMain(){
 		SceneManager.LoadScene("GameStart");
 	}
 
-	//更新鼠标锁定状态
+	/// <summary>
+    /// Update the mouse lock.
+    /// </summary>
 	private void InternalLockUpdate()
 	{
 		if(Input.GetKeyUp(KeyCode.Escape))
@@ -311,7 +395,10 @@ public class GameManager : MonoBehaviour {
 			Cursor.visible = true;
 		}
 	}
-	//显示鼠标
+	
+    /// <summary>
+    /// Show the mouse.
+    /// </summary>
 	private void ReleaseCursorLock()
 	{
 		Cursor.lockState = CursorLockMode.None;

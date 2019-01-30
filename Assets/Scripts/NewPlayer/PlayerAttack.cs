@@ -36,7 +36,7 @@ public class PlayerAttack : MonoBehaviour {
 	void LateUpdate () {	
 		isShooting=CrossPlatformInputManager.GetButton("Fire1");	//获取玩家射击键的输入
 		//若在游戏进行中（Playing）获取玩家射击输入，则调用射击函数
-		if (isShooting && timer >= shootingInterval && (GameManager.gm==null || GameManager.gm.gameState == GameManager.GameState.Playing)) {
+		if (isShooting && timer >= shootingInterval && (GameManager.gm==null || GameManager.gm.gameState == Enums.GameState.Playing)) {
 			Shoot ();
 			timer = 0;
 		} else if (gunLine != null)	//若射击条件未满足，表示未进行射击，禁用线渲染器

@@ -57,7 +57,7 @@ public class ZombieGenerator : MonoBehaviour {
 	}
 
 	void Update () {   
-		if (GameManager.gm.gameState != GameManager.GameState.Playing)
+		if (GameManager.gm.gameState != Enums.GameState.Playing)
 			return;
 		
 		//判断是否到达下一次生成僵尸的时间

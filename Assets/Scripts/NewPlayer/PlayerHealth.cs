@@ -40,7 +40,7 @@ public class PlayerHealth : MonoBehaviour {
 		if (currentHealth == 0) {
 			//如果玩家还有剩余的生命，那么控制玩家在一段时间后复活
 			if (restLife > 0) {
-				Invoke ("respawn", respawnTime);
+				Invoke ("Respawn", respawnTime);
 			}
 
 			if (anim != null) {
@@ -77,7 +77,7 @@ public class PlayerHealth : MonoBehaviour {
 	}
 
 	//复活玩家
-	public void respawn()
+	public void Respawn()
 	{
 		//恢复满血状态
 		currentHealth = startHealth;

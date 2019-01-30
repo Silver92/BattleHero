@@ -28,6 +28,7 @@ using System;
 using System.Collections.Generic;
 using ExitGames.Client.Photon;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 using SupportClassPun = ExitGames.Client.Photon.SupportClass;
@@ -1348,37 +1349,37 @@ namespace UnityEngine.SceneManagement
 	}
 
     /// <summary>Minimal implementation of the SceneManager for older Unity, up to v5.2.</summary>
-    public class SceneManager
-    {
-        public static void LoadScene(string name)
-        {
-            Application.LoadLevel(name);
-        }
+  //  public class SceneManager
+  //  {
+  //      public static void LoadScene(string name)
+  //      {
+  //          Application.LoadLevel(name);
+  //      }
 
-        public static void LoadScene(int buildIndex)
-        {
-            Application.LoadLevel(buildIndex);
-        }
+  //      public static void LoadScene(int buildIndex)
+  //      {
+  //          Application.LoadLevel(buildIndex);
+  //      }
 
-		public static AsyncOperation LoadSceneAsync(string name,LoadSceneMode mode =  LoadSceneMode.Single)
-		{
-			if (mode == UnityEngine.SceneManagement.LoadSceneMode.Single) {
-				return Application.LoadLevelAsync (name);
-			} else {
-				return Application.LoadLevelAdditiveAsync(name);
-			}
-		}
+		//public static AsyncOperation LoadSceneAsync(string name,LoadSceneMode mode =  LoadSceneMode.Single)
+		//{
+		//	if (mode == UnityEngine.SceneManagement.LoadSceneMode.Single) {
+		//		return Application.LoadLevelAsync (name);
+		//	} else {
+		//		return Application.LoadLevelAdditiveAsync(name);
+		//	}
+		//}
 
-		public static AsyncOperation LoadSceneAsync(int buildIndex,LoadSceneMode mode =  LoadSceneMode.Single)
-		{
-			if (mode == UnityEngine.SceneManagement.LoadSceneMode.Single) {
-				return Application.LoadLevelAsync (buildIndex);
-			} else {
-				return Application.LoadLevelAdditiveAsync(buildIndex);
-			}
-		}
+		//public static AsyncOperation LoadSceneAsync(int buildIndex,LoadSceneMode mode =  LoadSceneMode.Single)
+		//{
+		//	if (mode == UnityEngine.SceneManagement.LoadSceneMode.Single) {
+		//		return Application.LoadLevelAsync (buildIndex);
+		//	} else {
+		//		return Application.LoadLevelAdditiveAsync(buildIndex);
+		//	}
+		//}
 
-    }
+    //}
 }
 
 #endif

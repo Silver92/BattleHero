@@ -39,7 +39,7 @@ public class GameOverEffects : MonoBehaviour
        	direction = new Vector3(3.0f, 3.0f, 5.0f);		//设置摄像机偏移量
 
 		Camera playerCamera = player.GetComponentInChildren<Camera> ();	//获取游戏主角的摄像机组件
-		Camera gameOverCamera = GameObject.Find ("GameOverCamera").GetComponent<Camera> ();	//获取场景中游戏结束时的摄像机组件
+		Camera gameOverCamera = GameObject.Find ("[GAME OVER CAMERA]").GetComponent<Camera> ();	//获取场景中游戏结束时的摄像机组件
 		cameraTransform = gameOverCamera.transform;	
 
 		cameraTransform.position = playerCamera.transform.position;			//将主角摄像机的position属性赋值给游戏结束摄像机
@@ -114,13 +114,13 @@ public class GameOverEffects : MonoBehaviour
     {
         switch (GameManager.gm.gameState)
         {
-        case GameManager.GameState.Playing:	//游戏进行时不进行效果处理
+        case Enums.GameState.Playing:	//游戏进行时不进行效果处理
             return;
-		case GameManager.GameState.Winning:	//游戏胜利
+		case Enums.GameState.Winning:	//游戏胜利
 			if (!initialized) Init ();		//场景初始化
 			CameraBehavior (true);			//摄像机行为
             break;
-		case GameManager.GameState.GameOver://游戏失败
+		case Enums.GameState.GameOver://游戏失败
 			if (!initialized) Init ();		//场景初始化
 			CameraBehavior (false);			//摄像机行为
 			if (!gameover) GameOver ();		//游戏失败效果

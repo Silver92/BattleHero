@@ -38,7 +38,7 @@ public class FPSPlayerMove : MonoBehaviour {
 	void Jump(bool isGround)
 	{
 		//当玩家按下跳跃键，并且玩家在地面上时执行跳跃相关函数
-		if(CrossPlatformInputManager.GetButtonDown("Jump") && isGround &&(GameManager.gm == null || GameManager.gm.gameState == GameManager.GameState.Playing) )
+		if(CrossPlatformInputManager.GetButtonDown("Jump") && isGround &&(GameManager.gm == null || GameManager.gm.gameState == Enums.GameState.Playing) )
 		{
 			//给玩家刚体组件添加向上的作用力，以改变玩家的运动速度，改变值为jumpVelocity
 			rigid.AddForce(Vector3.up * jumpVelocity, ForceMode.VelocityChange);
@@ -48,7 +48,7 @@ public class FPSPlayerMove : MonoBehaviour {
 	//每帧执行一次，用于获取玩家输入并控制角色的行为
 	void Update () {
 		//当游戏状态为游戏进行中时
-		if (GameManager.gm == null || GameManager.gm.gameState == GameManager.GameState.Playing) 
+		if (GameManager.gm == null || GameManager.gm.gameState == Enums.GameState.Playing) 
 		{
 			float h = CrossPlatformInputManager.GetAxisRaw ("Horizontal");	//获取玩家水平轴上的输入
 			float v = CrossPlatformInputManager.GetAxisRaw ("Vertical");	//获取玩家垂直轴上的输入
