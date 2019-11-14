@@ -1,8 +1,8 @@
-# upm-package-template-3DLegacy
-Project Template for 3D scenes not using a SRP 
+# Battle Hero FPS
+A prototype of a 3D FPS game.
 
-This template uses Unity’s built in rendering pipeline. This template does not contain any example content.
+![Screen Shot 2019-11-14 at 08.35.29](Sample Pictures/Screen Shot 2019-11-14 at 08.35.29.png)
 
+![Screen Shot 2019-11-14 at 08.35.58](Sample Pictures/Screen Shot 2019-11-14 at 08.35.58.png)
 
-Package Name: com.unity.template.3dempty
-Package Version: 0.0.1
+![Screen Shot 2019-11-14 at 08.36.13](Sample Pictures/Screen Shot 2019-11-14 at 08.36.13.png)
